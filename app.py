@@ -28,18 +28,11 @@ class Scraping:
         self.link=link
 
     def get_comments(self):
-        os.system(f"youtube-comment-downloader --url {self.link} --output scraping.txt")
+        #os.system(f"youtube-comment-downloader --url {self.link} --output scraping.txt")
+        comments = downloader.get_comments_from_url(youtube_url=self.link, sort_by=SORT_BY_POPULAR)
+        comments_list = list(comments)
+        return comments_list
 
-def comment_liste():
-    ufc_comments_list=[]
-    # Step 1: Open the text file in read mode
-    with open('scraping.txt', 'r', encoding="utf8") as file:
-        for line in file:
-            # Step 2: Parse each line as a JSON object
-            data = json.loads(line)
-            ufc_comments_list.append(data)
-    print("comment list is taken")
-    return ufc_comments_list
 
 
 class Process:

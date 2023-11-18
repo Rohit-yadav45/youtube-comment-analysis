@@ -94,8 +94,7 @@ def dasboard(video_link):
     if video_link !='':
         print("link is entered") 
         sc = Scraping(video_link)
-        sc.get_comments()
-        comments = comment_liste()
+        comments = sc.get_comments()
         time.sleep(5)
         st.write(":blue[Data is collected. Analyze is started...]")
         Pr =Process()
@@ -259,7 +258,6 @@ def main():
     st.sidebar.write(':blue[VIDEO LINK:] ', video_link)
 
     if st.sidebar.button(':blue[START ANALYZE]'):
-        st.write(":blue[Data is collecting...]")
         dasboard(video_link)
 
 # Run main()

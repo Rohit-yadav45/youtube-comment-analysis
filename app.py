@@ -143,7 +143,7 @@ def dasboard(video_link):
             text="Count",
         )
         st.plotly_chart(fig_most_words)     
-
+        st.write(":blue[just a few minutes please wait...]")
         emotion_analyzer = create_analyzer(task="emotion", lang="en")
         sentiment_analyzer = create_analyzer(task="sentiment", lang="en")
         hate_speech = create_analyzer(task="hate_speech", lang="en")
@@ -259,6 +259,7 @@ def main():
     st.sidebar.write(':blue[VIDEO LINK:] ', video_link)
 
     if st.sidebar.button(':blue[START ANALYZE]'):
+        st.write(":blue[Data is collecting...]")
         dasboard(video_link)
 
 # Run main()

@@ -147,16 +147,20 @@ def dasboard(video_link):
 
         @st.cache_resource
         def load_hate_speech():
-            return create_analyzer(task="hate_speech", lang="en")   
+            return create_analyzer(task="hate_speech", lang="en")
+        
+        emotion_analyzer = load_emotion()
+        sentiment_analyzer = load_sentiment()
+        hate_speech = load_hate_speech()
         emo = []
         sen = []
         ht= []
         ag=[]
         trg=[]
         for i in df['text']:
-            out_sen = load_sentiment.predict(i)
-            out_emo = load_emotion.predict(i)
-            out_ht = load_hate_speech.predict(i)
+            out_sen = sentiment_analyzer.predict(i)
+            out_emo = emotion_analyzer.predict(i)
+            out_ht = hate_speech.predict(i)
             sen.append(out_sen.output)
             emo.append(out_emo.output)
             ht.append(out_ht.probas['hateful'])
@@ -254,7 +258,11 @@ def main():
     st.sidebar.write(':blue[VIDEO LINK:] ', video_link)
 
     if st.sidebar.button(':blue[START ANALYZE]'):
+        start_time = time.time()
         dasboard(video_link)
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        print(f"Elapsed Time: {elapsed_time} seconds")
 
 # Run main()
 

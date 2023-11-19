@@ -23,16 +23,12 @@ from pathlib import Path
 import base64
 
 
-class Scraping:
-    def __init__(self,link):
-        self.link=link
-
-    def get_comments(self):
-        #os.system(f"youtube-comment-downloader --url {self.link} --output scraping.txt")
-        comments = downloader.get_comments_from_url(youtube_url=self.link, sort_by=SORT_BY_POPULAR)
-        comments_list = list(comments)
-        return comments_list
-
+@st.cache_data
+def get_comments(link):
+    #os.system(f"youtube-comment-downloader --url {self.link} --output scraping.txt")
+    comments = downloader.get_comments_from_url(youtube_url=link, sort_by=SORT_BY_POPULAR)
+    comments_list = list(comments)
+    return comments_list
 
 
 class Process:
@@ -93,8 +89,7 @@ def img_to_bytes(img_path):
 def dasboard(video_link):
     if video_link !='':
         print("link is entered") 
-        sc = Scraping(video_link)
-        comments = sc.get_comments()
+        comments = get_comments(video_link)
         time.sleep(5)
         st.write(":blue[Data is collected. Analyze is started...]")
         Pr =Process()
@@ -110,11 +105,9 @@ def dasboard(video_link):
         st.table(df_length)        
 
         df = Pr.processing(comments)
-        selected_columns = ['author','votes']
-        temp_df = df[selected_columns]
 
         top_users_df = (
-        temp_df.groupby("author")
+        df[['author','votes']].groupby("author")
         .count()
         .reset_index()
         .rename(columns={"votes": "Count"})
@@ -143,18 +136,27 @@ def dasboard(video_link):
         )
         st.plotly_chart(fig_most_words)     
         st.write(":blue[just a few minutes please wait...]")
-        emotion_analyzer = create_analyzer(task="emotion", lang="en")
-        sentiment_analyzer = create_analyzer(task="sentiment", lang="en")
-        hate_speech = create_analyzer(task="hate_speech", lang="en")
+
+        @st.cache_resource
+        def load_emotion():
+            return create_analyzer(task="emotion", lang="en")
+        
+        @st.cache_resource
+        def load_sentiment():
+            return create_analyzer(task="sentiment", lang="en")
+
+        @st.cache_resource
+        def load_hate_speech():
+            return create_analyzer(task="hate_speech", lang="en")   
         emo = []
         sen = []
         ht= []
         ag=[]
         trg=[]
         for i in df['text']:
-            out_sen = sentiment_analyzer.predict(i)
-            out_emo = emotion_analyzer.predict(i)
-            out_ht = hate_speech.predict(i)
+            out_sen = load_sentiment.predict(i)
+            out_emo = load_emotion.predict(i)
+            out_ht = load_hate_speech.predict(i)
             sen.append(out_sen.output)
             emo.append(out_emo.output)
             ht.append(out_ht.probas['hateful'])
@@ -167,10 +169,8 @@ def dasboard(video_link):
         df['aggressive_rate'] = ag
         df['targeted_rate'] = trg
 
-        selected_columns = ['sentiment of comments','votes']
-        temp_df = df[selected_columns]
         sentiment_df = (
-            temp_df.groupby("sentiment of comments")
+            df[['sentiment of comments','votes']].groupby("sentiment of comments")
             .count()
             .reset_index()
             .rename(columns={"votes": "Count"})
@@ -186,10 +186,8 @@ def dasboard(video_link):
         st.title(":blue[COMMENTS SENTIMENT]")
         st.plotly_chart(fig_sentiment)
 
-        selected_columns = ['emotion of comments','votes']
-        temp_df = df[selected_columns]
         emotion_df = (
-            temp_df.groupby("emotion of comments")
+            df[['emotion of comments','votes']].groupby("emotion of comments")
             .count()
             .reset_index()
             .rename(columns={"votes": "Count"})
@@ -205,10 +203,8 @@ def dasboard(video_link):
         st.title(":blue[COMMENTS EMOTION]")
         st.plotly_chart(fig_emotion)
 
-        selected_columns = ['sentiment of comments','emotion of comments','votes']
-        temp_df = df[selected_columns]
         sentiment_emotion_df = (
-            temp_df.groupby(['sentiment of comments','emotion of comments'])
+            df[['sentiment of comments','emotion of comments','votes']].groupby(['sentiment of comments','emotion of comments'])
             .count()
             .reset_index()
             .rename(columns={"votes": "Count"})

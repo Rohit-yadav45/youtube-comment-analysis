@@ -101,7 +101,7 @@ def dasboard(video_link):
 
         df_length = pd.DataFrame(dict_len)
         #df_length.set_index('index', inplace=True)
-        st.title(":blue[ TOP USERS]")
+        st.title(":blue[COMMENTS LENGTH]")
         st.table(df_length)        
 
         df = Pr.processing(comments)
@@ -120,7 +120,7 @@ def dasboard(video_link):
             color="author",
             text="Count of Comments",
         )
-        st.title(":blue[MOST COMMENTED USERS]")
+        st.title(":blue[TOP USERS]")
         st.plotly_chart(fig_top_user)
 
         df_most_words = Pr.count_words_fast(df)

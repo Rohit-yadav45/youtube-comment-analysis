@@ -251,7 +251,7 @@ def main():
     st.sidebar.header(':blue[YOUTUBE COMMENT ANALYSIS DASHBOARD]', divider='blue')
     
     st.sidebar.markdown('''
-                        <small>Project Repostory: [github](https://github.com/akdilali/youtube-comment-analysis/).</small>
+                        <small>Project Repostory: [Project Repository](https://github.com/akdilali/youtube-comment-analysis/).</small>
                         ''', unsafe_allow_html=True)
 
     video_link = st.sidebar.text_input(":blue[INPUT LINK BELOW THE FILED FOR ANALYZE]",placeholder='PASTE LINK')

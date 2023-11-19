@@ -101,7 +101,7 @@ def dasboard(video_link):
 
         df_length = pd.DataFrame(dict_len)
         #df_length.set_index('index', inplace=True)
-        st.title(":blue[COMMENTS LENGTH]")
+        st.title(":blue[ TOP USERS]")
         st.table(df_length)        
 
         df = Pr.processing(comments)
@@ -110,15 +110,15 @@ def dasboard(video_link):
         df[['author','votes']].groupby("author")
         .count()
         .reset_index()
-        .rename(columns={"votes": "Count"})
-        .sort_values(by="Count", ascending=False)
+        .rename(columns={"votes": "Count of Comments"})
+        .sort_values(by="Count of Comments", ascending=False)
         )
         fig_top_user = px.bar(
             top_users_df.head(10),
             x="author",
-            y="Count",
+            y="Count of Comments",
             color="author",
-            text="Count",
+            text="Count of Comments",
         )
         st.title(":blue[MOST COMMENTED USERS]")
         st.plotly_chart(fig_top_user)

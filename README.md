@@ -1,9 +1,9 @@
-# youtube-comment-analysis
+# Youtube-Comment-Analysis
 
 The purpose of this project is to analyze the comments of YouTube videos.
 
 ## Application
-+  [youtube-comment-analysis](https://youtube-comment-analysis.streamlit.app/)
++ Web application link: [youtube-comment-analysis](https://youtube-comment-analysis.streamlit.app/)
 + Open web application and paste youtube link and click start to analysis
 
 ## Running on local

@@ -39,12 +39,14 @@ def get_comments(link):
 
 class Process:
 
+    #remove non-letter phrases
     def remove_not_str(self,text):
         text = text.lower()
         letters_with_spaces = re.findall(r'[a-zA-Z\s]+', text)
         result = ''.join(letters_with_spaces)
         return result
 
+    #repetitions of words
     def count_words_fast(self,processed_df):
         text = ''
         for x in processed_df['text']: text+=x
@@ -57,6 +59,7 @@ class Process:
         df_word_count = pd.DataFrame(list(first_ten_elements.items()), columns=['Word', 'Count'])
         return df_word_count
     
+    #find lengths of comments
     def comments_length(self,comment_liste):
         d = {'comment': [x['text'] for x in comment_liste]}
         df_len = pd.DataFrame(data=d)
@@ -64,6 +67,7 @@ class Process:
         df_len['length'] = df_len['comment'].apply(lambda x: len(x))
         return df_len
     
+    #make a dataframe from dataset, apply remove_not_str and function and remove stop words
     def processing(self,comment_liste):
         d = {'cid': [x['cid'] for x in comment_liste], 'text': [x['text'] for x in comment_liste],
             'time': [x['time'] for x in comment_liste],'author': [x['author'] for x in comment_liste],
@@ -71,8 +75,10 @@ class Process:
         df_pr = pd.DataFrame(data=d)
         df_pr.dropna(inplace=True)
         print("dataframe is created")
+
         df_pr['text'] = df_pr['text'].apply(self.remove_not_str)
         print("words is cleaned")
+
         df_pr['text'] = df_pr['text'].apply(lambda x: ' '.join([word for word in nltk.word_tokenize(x) if word.lower() not in set(stopwords.words('english'))]) )
         print("stop words was removed")
         #df_pr['text'] = df_pr['text'].apply(lambda x: str(TextBlob(x).correct()))
@@ -95,6 +101,7 @@ def img_to_bytes(img_path):
     encoded = base64.b64encode(img_bytes).decode()
     return encoded
 
+#create dashboard
 def dasboard(video_link):
     if video_link !='':
         print("link is entered")
@@ -102,6 +109,7 @@ def dasboard(video_link):
         comments = get_comments(video_link)
         st.sidebar.write(":blue[Data is collected. Analyze is started...]")
         
+        #create a class object
         Pr =Process()
         
         df_len = Pr.comments_length(comments)
@@ -114,6 +122,7 @@ def dasboard(video_link):
         st.header(":blue[Comments length]")
         st.table(df_length)        
 
+        #apply processing function and create a dataframe
         df = Pr.processing(comments)
 
         top_users_df = (
@@ -146,6 +155,8 @@ def dasboard(video_link):
         )
         st.plotly_chart(fig_most_words,use_container_width=True) 
         st.sidebar.write(":blue[Analysis continues. \n You can examine the completed graphs. \nPlease wait a few more minutes]")
+
+        #ml model steps
 
         @st.cache_resource
         def load_emotion():
@@ -241,42 +252,44 @@ def dasboard(video_link):
                 "hate speech rate": [f"%{round(df.hate_speech_rate.min()*100,2)}",f"%{round(df.hate_speech_rate.max()*100,2)}",f"%{round(df.hate_speech_rate.mean()*100,2)}"]}
 #                "aggressive speech rate": [df.aggressive_rate.min(), df.aggressive_rate.max(), df.aggressive_rate.mean()], 
 #                "targeted speech rate":[df.targeted_rate.min(),df.targeted_rate.max(),df.targeted_rate.mean()]}
-
-        best_df = df[(df['emotion of comments'] == 'joy') & (df['sentiment of comments'] == 'POS')]
-        best_df.sort_values(by='hate_speech_rate',ascending=True, inplace=True)
-        best_df.reset_index(inplace=True)
-        worst_df = df[(df['emotion of comments'] == 'disgust') & (df['sentiment of comments'] == 'NEG')]
-        worst_df.sort_values(by='hate_speech_rate',ascending=False, inplace=True)
-        worst_df.reset_index(inplace=True)
         df_sentiment = pd.DataFrame(dict_sentiment)
         df_sentiment.set_index('index', inplace=True)
         st.header(":blue[Bad comments rate]")
         st.table(df_sentiment)
+
+        best_df = df[(df['emotion of comments'] == 'joy') & (df['sentiment of comments'] == 'POS')]
+        best_df.sort_values(by='hate_speech_rate',ascending=True, inplace=True)
+        best_df.reset_index(inplace=True)
+
+        worst_df = df[(df['emotion of comments'] == 'disgust') & (df['sentiment of comments'] == 'NEG')]
+        worst_df.sort_values(by='hate_speech_rate',ascending=False, inplace=True)
+        worst_df.reset_index(inplace=True)
+        
+
         st.header(":blue[Best comments]")
         best_df = best_df[['text','author']][0:5]
         st.markdown(best_df.style.hide(axis="index").to_html(),unsafe_allow_html=True)
+
         st.header(":blue[Worst comments]")
         worst_df = worst_df[['text','author']][0:5]
         st.markdown(worst_df.style.hide(axis="index").to_html(),unsafe_allow_html=True)
     return None
 
 def main():
-
+    #sidebar codes and trigger dashboard and Process class
+    st.markdown("<h1 style='text-align: center; color: blue;'>YouTube Comment Analysis Dashboard</h1>", unsafe_allow_html=True)
     st.sidebar.markdown('''[<img src='data:image/png;base64,{}' class='img-fluid' width=75 height=50>](https://streamlit.io/)'''.format(img_to_bytes("icon.png")), unsafe_allow_html=True)
     st.sidebar.header(':blue[YOUTUBE COMMENT ANALYSIS]', divider='blue')
     
     st.sidebar.write("Language should be english")
     video_link = st.sidebar.text_input(":blue[paste the youtube link below]",placeholder='PASTE LINK')
-    #st.sidebar.write(':blue[VIDEO LINK:] ', video_link)
 
     st.sidebar.write("Project Repository: [link](https://github.com/akdilali/youtube-comment-analysis/)")
-
-    
 
     if st.sidebar.button(':blue[START ANALYSIS]'):
         st.sidebar.write(':blue[VIDEO LINK:] ', video_link)
         start_time = time.time()
-        st.markdown("<h1 style='text-align: center; color: blue;'>YouTube Comment Analysis Dashboard</h1>", unsafe_allow_html=True)
+        #st.markdown("<h1 style='text-align: center; color: blue;'>YouTube Comment Analysis Dashboard</h1>", unsafe_allow_html=True)
         dasboard(video_link)
         st.sidebar.write(":blue[Analysis finished]")
         end_time = time.time()

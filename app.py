@@ -25,7 +25,7 @@ import base64
 
 @st.cache_data
 def get_comments(link):
-    #os.system(f"youtube-comment-downloader --url {self.link} --output scraping.txt")
+    #os.system(f"youtube-comment-downloader --url {link} --output scraping.txt")
     comments = downloader.get_comments_from_url(youtube_url=link, sort_by=SORT_BY_POPULAR)
     comments_list = list(comments)
     return comments_list
@@ -70,15 +70,18 @@ class Process:
         df_pr['text'] = df_pr['text'].apply(lambda x: ' '.join([word for word in nltk.word_tokenize(x) if word.lower() not in set(stopwords.words('english'))]) )
         print("stop words was removed")
         #df_pr['text'] = df_pr['text'].apply(lambda x: str(TextBlob(x).correct()))
-        #print("words is correct now")        
         print("processing is finished")
-        #df_pr.to_csv("new_df55555.csv")
         return df_pr
 
 st.set_page_config(
      page_title='YOUTUBE COMMENT ANALYSIS',
      layout="wide",
      initial_sidebar_state="expanded",
+    menu_items={
+        'Get Help': 'https://github.com/akdilali',
+        'Report a bug': "https://github.com/akdilali",
+        'About': "# This is a training app!"
+    }
 )
 
 def img_to_bytes(img_path):
@@ -88,20 +91,21 @@ def img_to_bytes(img_path):
 
 def dasboard(video_link):
     if video_link !='':
-        print("link is entered") 
+        print("link is entered")
+        st.sidebar.write(':blue[Data is collecting...]')
         comments = get_comments(video_link)
-        time.sleep(5)
-        st.write(":blue[Data is collected. Analyze is started...]")
+        st.sidebar.write(":blue[Data is collected. Analyze is started...]")
+        
         Pr =Process()
         
         df_len = Pr.comments_length(comments)
         df_len.sort_values(by='length',ascending=False, inplace=True)
-        dict_len = { "index":["min","max","median"],
-                "length": [int(df_len.length.min()),int(df_len.length.max()),int(df_len.length.mean())]}
+        dict_len = { "index":["minimum","maximum","average"],
+                "length of comments": [int(df_len.length.min()),int(df_len.length.max()),int(df_len.length.mean())]}
 
         df_length = pd.DataFrame(dict_len)
-        #df_length.set_index('index', inplace=True)
-        st.title(":blue[COMMENTS LENGTH]")
+        df_length.set_index('index', inplace=True)
+        st.header(":blue[Comments length]")
         st.table(df_length)        
 
         df = Pr.processing(comments)
@@ -120,13 +124,13 @@ def dasboard(video_link):
             color="author",
             text="Count of Comments",
         )
-        st.title(":blue[TOP USERS]")
-        st.plotly_chart(fig_top_user)
+        st.header(":blue[Most commented users]")
+        st.plotly_chart(fig_top_user,use_container_width=True)
 
         df_most_words = Pr.count_words_fast(df)
         df_most_words.sort_values(by='Count', ascending=False, inplace=True)
-        st.title(":blue[MOST REPEATED WORDS]")
-        st.table(df_most_words)
+
+        st.header(":blue[Most repeated words]")
         fig_most_words = px.bar(
             df_most_words,
             x="Word",
@@ -134,8 +138,8 @@ def dasboard(video_link):
             color="Word",
             text="Count",
         )
-        st.plotly_chart(fig_most_words)     
-        st.write(":blue[just a few minutes please wait...]")
+        st.plotly_chart(fig_most_words,use_container_width=True) 
+        st.sidebar.write(":blue[Analysis continues. \n You can examine the completed graphs. \nPlease wait a few more minutes]")
 
         @st.cache_resource
         def load_emotion():
@@ -170,8 +174,8 @@ def dasboard(video_link):
         df['sentiment of comments'] = sen
         df['emotion of comments'] = emo
         df['hate_speech_rate'] = ht
-        df['aggressive_rate'] = ag
-        df['targeted_rate'] = trg
+#        df['aggressive_rate'] = ag
+#        df['targeted_rate'] = trg
 
         sentiment_df = (
             df[['sentiment of comments','votes']].groupby("sentiment of comments")
@@ -186,9 +190,10 @@ def dasboard(video_link):
             y="Count",
             color=["NOTR","NEGATIVE","POSITIVE"],
             text="Count",
+            title='Positivity, negativity and neutral status of comments'
         )
-        st.title(":blue[COMMENTS SENTIMENT]")
-        st.plotly_chart(fig_sentiment)
+        st.header(":blue[Comments sentiment]")
+        st.plotly_chart(fig_sentiment,use_container_width=True)
 
         emotion_df = (
             df[['emotion of comments','votes']].groupby("emotion of comments")
@@ -204,8 +209,8 @@ def dasboard(video_link):
             color="emotion of comments",
             text="Count",
         )
-        st.title(":blue[COMMENTS EMOTION]")
-        st.plotly_chart(fig_emotion)
+        st.header(":blue[Emotions of comments]")
+        st.plotly_chart(fig_emotion, use_container_width=True)
 
         sentiment_emotion_df = (
             df[['sentiment of comments','emotion of comments','votes']].groupby(['sentiment of comments','emotion of comments'])
@@ -220,46 +225,53 @@ def dasboard(video_link):
             y="Count",
             color='emotion of comments',
             text="Count",
+            title='Comment emotions with positivity, negativity and neutral status of comments'
+
         )
-        st.title(":blue[COMMENTS SENTIMENT WITH EMOTION]")
-        st.plotly_chart(fig_sentiment_emotion)
+        st.header(":blue[comments emotions with sentiment]")
+        st.plotly_chart(fig_sentiment_emotion, use_container_width=True)
         #yüzdeye çevrilecek
-        dict_sentiment = { "index":["min","max","median"],
-                "hate_Speech": [df.hate_speech_rate.min(),df.hate_speech_rate.max(),df.hate_speech_rate.mean()] ,
-                "aggressive": [df.aggressive_rate.min(), df.aggressive_rate.max(), df.aggressive_rate.mean()], 
-                "targeted":[df.targeted_rate.min(),df.targeted_rate.max(),df.targeted_rate.mean()]}
+        dict_sentiment = { "index":["minimum","maximum","average"],
+                "hate speech rate": [f"%{round(df.hate_speech_rate.min()*100,2)}",f"%{round(df.hate_speech_rate.max()*100,2)}",f"%{round(df.hate_speech_rate.mean()*100,2)}"]}
+#                "aggressive speech rate": [df.aggressive_rate.min(), df.aggressive_rate.max(), df.aggressive_rate.mean()], 
+#                "targeted speech rate":[df.targeted_rate.min(),df.targeted_rate.max(),df.targeted_rate.mean()]}
 
         best_df = df[(df['emotion of comments'] == 'joy') & (df['sentiment of comments'] == 'POS')]
-        best_df.sort_values(by=['hate_speech_rate','aggressive_rate','targeted_rate'],ascending=True, inplace=True)
+        best_df.sort_values(by='hate_speech_rate',ascending=True, inplace=True)
         best_df.reset_index(inplace=True)
         worst_df = df[(df['emotion of comments'] == 'disgust') & (df['sentiment of comments'] == 'NEG')]
-        worst_df.sort_values(by=['hate_speech_rate','aggressive_rate','targeted_rate'],ascending=False, inplace=True)
+        worst_df.sort_values(by='hate_speech_rate',ascending=False, inplace=True)
         worst_df.reset_index(inplace=True)
         df_sentiment = pd.DataFrame(dict_sentiment)
         df_sentiment.set_index('index', inplace=True)
-        st.title(":blue[BAD COMMENTS RATE]")
+        st.header(":blue[Bad comments rate]")
         st.table(df_sentiment)
-        st.title(":blue[BEST COMMENTS]")
-        st.table(best_df[['text','author']].head())
-        st.title(":blue[WORST COMMENTS]")
-        st.table(worst_df[['text','author']].head())
+        st.header(":blue[Best comments]")
+        best_df = best_df[['text','author']][0:5]
+        st.markdown(best_df.style.hide(axis="index").to_html(),unsafe_allow_html=True)
+        st.header(":blue[Worst comments]")
+        worst_df = worst_df[['text','author']][0:5]
+        st.markdown(worst_df.style.hide(axis="index").to_html(),unsafe_allow_html=True)
     return None
 
 def main():
 
-    st.sidebar.markdown('''[<img src='data:image/png;base64,{}' class='img-fluid' width=32 height=32>](https://streamlit.io/)'''.format(img_to_bytes("icon.png")), unsafe_allow_html=True)
-    st.sidebar.header(':blue[YOUTUBE COMMENT ANALYSIS DASHBOARD]', divider='blue')
+    st.sidebar.markdown('''[<img src='data:image/png;base64,{}' class='img-fluid' width=75 height=50>](https://streamlit.io/)'''.format(img_to_bytes("icon.png")), unsafe_allow_html=True)
+    st.sidebar.header(':blue[YOUTUBE COMMENT ANALYSIS]', divider='blue')
+
+    video_link = st.sidebar.text_input(":blue[paste the link below for analysis]",placeholder='PASTE LINK')
+    #st.sidebar.write(':blue[VIDEO LINK:] ', video_link)
+
+    st.sidebar.write("Project Repository: [link](https://github.com/akdilali/youtube-comment-analysis/)")
+
     
-    st.sidebar.markdown('''
-                        <small>Project Repostory: [Project Repository](https://github.com/akdilali/youtube-comment-analysis/).</small>
-                        ''', unsafe_allow_html=True)
 
-    video_link = st.sidebar.text_input(":blue[INPUT LINK BELOW THE FILED FOR ANALYZE]",placeholder='PASTE LINK')
-    st.sidebar.write(':blue[VIDEO LINK:] ', video_link)
-
-    if st.sidebar.button(':blue[START ANALYZE]'):
+    if st.sidebar.button(':blue[START ANALYSIS]'):
+        st.sidebar.write(':blue[VIDEO LINK:] ', video_link)
         start_time = time.time()
+        st.markdown("<h1 style='text-align: center; color: blue;'>YouTube Comment Analysis Dashboard</h1>", unsafe_allow_html=True)
         dasboard(video_link)
+        st.sidebar.write(":blue[Analysis finished]")
         end_time = time.time()
         elapsed_time = end_time - start_time
         print(f"Elapsed Time: {elapsed_time} seconds")

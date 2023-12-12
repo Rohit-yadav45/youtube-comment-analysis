@@ -264,7 +264,8 @@ def main():
 
     st.sidebar.markdown('''[<img src='data:image/png;base64,{}' class='img-fluid' width=75 height=50>](https://streamlit.io/)'''.format(img_to_bytes("icon.png")), unsafe_allow_html=True)
     st.sidebar.header(':blue[YOUTUBE COMMENT ANALYSIS]', divider='blue')
-
+    
+    st.sidebar.write("Language should be english")
     video_link = st.sidebar.text_input(":blue[paste the link below for analysis]",placeholder='PASTE LINK')
     #st.sidebar.write(':blue[VIDEO LINK:] ', video_link)
 

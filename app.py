@@ -266,7 +266,7 @@ def main():
     st.sidebar.header(':blue[YOUTUBE COMMENT ANALYSIS]', divider='blue')
     
     st.sidebar.write("Language should be english")
-    video_link = st.sidebar.text_input(":blue[paste the link below for analysis]",placeholder='PASTE LINK')
+    video_link = st.sidebar.text_input(":blue[paste the youtube link below]",placeholder='PASTE LINK')
     #st.sidebar.write(':blue[VIDEO LINK:] ', video_link)
 
     st.sidebar.write("Project Repository: [link](https://github.com/akdilali/youtube-comment-analysis/)")

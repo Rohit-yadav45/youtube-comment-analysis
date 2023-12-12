@@ -16,11 +16,17 @@ from pysentimiento import create_analyzer
 from textblob import TextBlob
 import nltk
 from nltk.corpus import stopwords
-nltk.download('stopwords')
-nltk.download('punkt')
+#nltk.download('stopwords')
+#nltk.download('punkt')
 
 from pathlib import Path
 import base64
+
+@st.cache_data
+def nltk_():
+    nltk.download('stopwords')
+    nltk.download('punkt')
+
 
 
 @st.cache_data
@@ -279,4 +285,5 @@ def main():
 # Run main()
 
 if __name__ == '__main__':
+    nltk_()
     main()
